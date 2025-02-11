@@ -1,0 +1,143 @@
+/* --- CSS Variables --- */
+:root {
+  --bg-gradient-start: #F72585;
+  --bg-gradient-end: #3F37C9;
+  --text-color: #FFFFFF;
+  --button-bg-color: #7209B7;
+  --button-hover-bg-color: #8E24AA;
+  --link-hover-color: #4CC9F0;
+  --shape-opacity: 0.3;
+  --handwritten-font: 'Kalam', cursive;
+  --body-font: 'Verdana', sans-serif;
+  --hero-text-color: #4CC9F0;
+  --hero-text-shadow-color: #282c34;
+  --hero-text-hover-colors: #F72585, #7209B7, #4361EE, #4CC9F0, #F7D460; /*Keep cycling through*/
+  --shadow-offset: 0.06em; /* Control the 3D depth */
+  --skew-amount: -5deg; /* Control the skew angle */
+}
+
+/* --- Reset --- */
+body, h1, h2, p, ul, li { margin: 0; padding: 0; }
+
+/* --- General Styles --- */
+body {
+  font-family: var(--body-font);
+  background: linear-gradient(to right, var(--bg-gradient-start), var(--bg-gradient-end));
+  color: var(--text-color);
+  overflow-x: hidden;
+}
+
+#background-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* --- Shapes (Same as before) --- */
+.shape { position: absolute; border-radius: 50%; opacity: var(--shape-opacity); }
+.shape-1{ width: 50px;  height: 50px;  background-color: #F7D460; top: 10%; left: 20%; animation: moveShape1 20s linear infinite;}
+.shape-2{ width: 80px; height: 80px; background-color: #4361EE; top: 60%; left: 50%; animation: moveShape2 30s linear infinite;}
+.shape-3{ width: 30px; height: 30px; background-color: #4CC9F0; top: 80%; left: 90%; animation: moveShape3 15s linear infinite;}
+.shape-4{ width: 100px; height: 100px; background-color: #4CC9F0; top: 30%; left: 5%; animation: moveShape1 22s linear infinite;}
+.shape-5{ width: 45px; height: 45px; background-color: #7209B7; top: 90%; left: 40%; animation: moveShape3 19s linear infinite;}
+.shape-6{ width: 20px; height: 20px; background-color: #F7D460; top: 15%; left: 75%; animation: moveShape1 33s linear infinite;}
+.shape-7{ width: 65px; height: 65px; background-color: #F72585; top: 45%; left: 62%; animation: moveShape2 10s linear infinite;}
+.shape-8{ width: 48px; height: 48px; background-color: #4361EE; top: 66%; left: 27%; animation: moveShape3 40s linear infinite;}
+.shape-9{ width: 88px; height: 88px; background-color: #7209B7; top: 5%; left: 93%; animation: moveShape1 15s linear infinite;}
+.shape-10{width: 60px; height: 60px; background-color: #F72585; top: 75%; left: 15%; animation: moveShape4 25s linear infinite;}
+.shape-11 {width: 35px; height: 35px; background-color: #4361EE; top: 5%; left: 35%; animation: moveShape5 18s linear infinite;}
+.shape-12{width: 90px; height: 90px; background-color:#7209B7; top:90%; left: 50%; animation: moveShape6 32s linear infinite reverse;}
+.shape-13{width: 15px; height: 15px; background-color: #F7D460; top:18%; left:85%; animation: moveShape4 16s linear infinite;}
+.shape-14{width: 25px; height: 25px; background-color:#4CC9F0; top: 55%; left: 95%; animation: moveShape5 23s linear infinite reverse;}
+.shape-15{width: 77px; height: 77px; background-color:#F72585; top:83%; left:33%; animation: moveShape6 28s linear infinite ;}
+.shape-16{width: 42px; height: 42px; background-color:#4361EE; top:44%; left:44%; animation: moveShape4 35s linear infinite reverse;}
+.shape-17{width: 58px; height: 58px; background-color:#7209B7; top: 95%; left:66%; animation:moveShape5 14s linear infinite;}
+.shape-18{width: 88px; height: 88px; background-color: #F7D460; top: 22%; left: 8%; animation: moveShape6 41s linear infinite;}
+.shape-19{width: 58px; height: 58px; background-color:#F72585; top: 38%; left:71%; animation: moveShape4 26s linear infinite reverse;}
+.shape-20{width: 69px; height: 69px; background-color:#4361EE; animation: moveShape5 39s linear infinite ; top: 17%; left:48%;}
+
+/* --- Keyframe Animations --- */
+@keyframes moveShape1 { 0% { transform: translate(0, 0); } 100%{ transform: translate(100vw, 100vh); }}
+@keyframes moveShape2 { 0% { transform: translate(0, 0); } 100%{ transform: translate(-100vw, 100vh);}}
+@keyframes moveShape3 { 0% { transform: translate(0, 0); } 100%{ transform: translate(50vw, -100vh);}}
+@keyframes moveShape4 { 0% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(50vw, 50vh) rotate(180deg); } 100% { transform: translate(0, 0) rotate(360deg); }}
+@keyframes moveShape5 { 0% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-50vw, 50vh) scale(0.5); } 100% { transform: translate(0, 0) scale(1); }}
+@keyframes moveShape6{ 0% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-20vw, 20vh) scale(1.2); } 100% { transform: translate(0, 0) scale(1); }}
+
+/* --- Header --- */
+header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 30vh;
+  padding: 20px;
+}
+
+#hero-text-container {
+  text-align: center;
+}
+
+/* --- 3D Text Styling --- */
+#hero-text-container h1 {
+    font-size: 4em;
+    font-family: var(--body-font);
+    color: var(--hero-text-color);
+    text-shadow:
+        calc(var(--shadow-offset) * 1) calc(var(--shadow-offset) * 1) 0 var(--hero-text-shadow-color),
+        calc(var(--shadow-offset) * 2) calc(var(--shadow-offset) * 2) 0 var(--hero-text-shadow-color),
+        calc(var(--shadow-offset) * 3) calc(var(--shadow-offset) * 3) 0 var(--hero-text-shadow-color),
+        calc(var(--shadow-offset) * 4) calc(var(--shadow-offset) * 4) 0 var(--hero-text-shadow-color),
+        calc(var(--shadow-offset) * 5) calc(var(--shadow-offset) * 5) 0 var(--hero-text-shadow-color),
+        calc(var(--shadow-offset) * 6) calc(var(--shadow-offset) * 6) 0 var(--hero-text-shadow-color);
+   transform: skew(var(--skew-amount));
+   animation: wobble 2s ease-in-out infinite;
+   white-space: nowrap; /*Prevent text wrapping*/
+
+}
+
+#hero-text-container h1 span {
+  display: inline-block; /* Treat each letter as a block */
+  transition: text-shadow 0.2s ease; /* Smooth transition for hover */
+}
+
+/* --- Hover Effects (Per Letter) --- */
+#hero-text-container h1 span:hover {
+    /*  text-shadow: 1px 1px 2px var(--hero-text-shadow-color);*/
+    animation: colorChange 0.3s steps(18) forwards;
+
+}
+/*Keyframe animation for rapid color changes*/
+ @keyframes colorChange{
+    0% { text-shadow:
+        calc(var(--shadow-offset) * 1) calc(var(--shadow-offset) * 1) 0 var(--hero-text-hover-colors, currentColor); }
+      16% { text-shadow:
+        calc(var(--shadow-offset) * 1) calc(var(--shadow-offset) * 1) 0 var(--hero-text-hover-colors, currentColor); }
+     33% { text-shadow:
+        calc(var(--shadow-offset) * 2) calc(var(--shadow-offset) * 2) 0 var(--hero-text-hover-colors, currentColor); }
+    50% { text-shadow:
+        calc(var(--shadow-offset) * 3) calc(var(--shadow-offset) * 3) 0 var(--hero-text-hover-colors, currentColor); }
+    66% { text-shadow:
+        calc(var(--shadow-offset) * 4) calc(var(--shadow-offset) * 4) 0 var(--hero-text-hover-colors, currentColor); }
+    83% { text-shadow:
+        calc(var(--shadow-offset) * 5) calc(var(--shadow-offset) * 5) 0 var(--hero-text-hover-colors, currentColor); }
+    100% { text-shadow:
+        calc(var(--shadow-offset) * 6) calc(var(--shadow-offset) * 6) 0 var(--hero-text-hover-colors, currentColor); }
+}
+/* --- Wobble Animation --- */
+@keyframes wobble {
+  0%, 100% { transform: skew(var(--skew-amount)) rotate(0deg); }
+  25% { transform: skew(calc(var(--skew-amount) + 2deg)) rotate(1deg); }
+  75% { transform: skew(calc(var(--skew-amount) - 2deg)) rotate(-1deg); }
+}
+
+/* --- Main Content --- */
+main { text-align: center; }
+
+#about {
+  max-width: 800px;
+  margin: 40px auto;
+  padding:
