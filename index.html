@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400" rel="stylesheet">
+  <title>HUGH'S EXTRA Crossword</title>
+  <style>
+    /* Basic reset and centering */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      background: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+    /* Grid container – its dimensions will be set based on the final bounding rectangle */
+    #grid {
+      position: relative;
+      display: grid;
+      width: 90vw;
+      height: 90vh;
+      grid-gap: 0;
+    }
+    /* Each grid cell (letter) shares the same style */
+    .letter {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Roboto', Arial, sans-serif;
+      font-size: clamp(10px, 3vw, 24px);
+      line-height: 1;
+      margin: 0;
+      padding: 0;
+      opacity: 0;
+      animation: fall 1.5s ease-out forwards;
+    }
+    @keyframes fall {
+      from {
+        transform: var(--start-transform);
+        opacity: 0;
+      }
+      to {
+        transform: none;
+        opacity: 1;
+      }
+    }
+    /* Styling for extra attachment cells that are hyperlinks */
+    .letter a {
+      text-decoration: none;
+      color: inherit;
+    }
+  </style>
+</head>
+<body>
+  <div id="grid"></div>
+  <script>
+    // Global constants for the base word.
+    const BASE_WORD = "HUGH";
+    // Define extra attachments.
+    // Each extra attachment object contains:
+    //  - text: extra string to attach (e.g. "'S WEBSITE")
+    //  - url: if not null, the extra text will be rendered as a hyperlink.
+    //  - color: the color used for both the extra text and its attached base word.
+    const extraAttachments = [
+      {
+      "text": "'S WEBSITE",
+      "url": null,
+      "color": "#FFD700"
+      },
+      {
+        "text": "'S LINKEDIN",
+        "url": "https://www.linkedin.com/in/hugh-o-shaughnessy-a440b2231",
+        "color": "#0077B5"
+      },
+      {
+        "text": "'S GITHUB",
+        "url": "https://github.com/hughosh",
+        "color": "#C9510C"
+      }
+      // Add more extra attachments here as desired.
+    ];
+
+    // Our crossword grid is stored as a Map with keys "x,y" mapping to a letter.
+    // We'll also store extra configuration for cells (color and URL) in extraPositions.
+    let extraPositions = new Map();
+
+    // Utility: compute the current grid bounding box from grid Map.
+    function computeBoundingBox(grid) {
+      let xs = [], ys = [];
+      grid.forEach((val, key) => {
+        let [x, y] = key.split(",").map(Number);
+        xs.push(x);
+        ys.push(y);
+      });
+      return {
+        minX: Math.min(...xs),
+        maxX: Math.max(...xs),
+        minY: Math.min(...ys),
+        maxY: Math.max(...ys)
+      };
+    }
+
+    /* 
+      Candidate validation:
+      For every contiguous group (in a row or column), the rules are:
+        - A single letter (an intersection) is allowed.
+        - A group of multiple letters must be either:
+             exactly the base word ("HUGH")
+          or exactly the base word concatenated with one of the extra attachment texts 
+             (e.g. "HUGH'S WEBSITE").
+    */
+    function validateCandidate(candidate) {
+      function isValidGroup(group) {
+        if (group.length === 1) return true;
+        let str = group.map(cell => cell.letter).join("");
+        if (group.length === BASE_WORD.length && str === BASE_WORD) return true;
+        for (let att of extraAttachments) {
+          if (group.length === BASE_WORD.length + att.text.length && str === (BASE_WORD + att.text))
+            return true;
+        }
+        return false;
+      }
+      
+      let rows = {};
+      let cols = {};
+      candidate.forEach((letter, key) => {
+        let [x, y] = key.split(",").map(Number);
+        if (!rows[y]) rows[y] = [];
+        rows[y].push({ x, letter });
+        if (!cols[x]) cols[x] = [];
+        cols[x].push({ y, letter });
+      });
+      
+      for (let r in rows) {
+        let cells = rows[r];
+        cells.sort((a, b) => a.x - b.x);
+        let group = [];
+        let groups = [];
+        for (let j = 0; j < cells.length; j++) {
+          if (group.length === 0) group.push(cells[j]);
+          else {
+            let prev = group[group.length - 1];
+            if (cells[j].x === prev.x + 1) group.push(cells[j]);
+            else { groups.push(group); group = [cells[j]]; }
+          }
+        }
+        if (group.length > 0) groups.push(group);
+        for (let g of groups) if (!isValidGroup(g)) return false;
+      }
+      
+      for (let c in cols) {
+        let cells = cols[c];
+        cells.sort((a, b) => a.y - b.y);
+        let group = [];
+        let groups = [];
+        for (let j = 0; j < cells.length; j++) {
+          if (group.length === 0) group.push(cells[j]);
+          else {
+            let prev = group[group.length - 1];
+            if (cells[j].y === prev.y + 1) group.push(cells[j]);
+            else { groups.push(group); group = [cells[j]]; }
+          }
+        }
+        if (group.length > 0) groups.push(group);
+        for (let g of groups) if (!isValidGroup(g)) return false;
+      }
+      return true;
+    }
+    
+    // Main generation function.
+    function generateCrossword() {
+      let grid = new Map(); // keys: "x,y" → letter
+      let placedWords = []; // records of placed base words: { x, y, orientation }
+      
+      // Attempt to place a base word ("HUGH") at (x, y) in the given orientation ("across" or "down")
+      function tryPlaceWord(x, y, orientation) {
+        let candidate = new Map(grid);
+        for (let i = 0; i < BASE_WORD.length; i++) {
+          let key = (orientation === "across") ? `${x+i},${y}` : `${x},${y+i}`;
+          let letter = BASE_WORD[i];
+          if (candidate.has(key) && candidate.get(key) !== letter) return false;
+          candidate.set(key, letter);
+        }
+        if (!validateCandidate(candidate)) return false;
+        candidate.forEach((val, key) => grid.set(key, val));
+        placedWords.push({ x, y, orientation });
+        return true;
+      }
+      
+      // Place the first word.
+      tryPlaceWord(0, 0, "across");
+      
+      // Attempt to add many words.
+      const maxAttempts = 500;
+      let attempts = 0;
+      while (attempts < maxAttempts) {
+        attempts++;
+        let base = placedWords[Math.floor(Math.random() * placedWords.length)];
+        let newOrientation = base.orientation === "across" ? "down" : "across";
+        let indexInBase = Math.floor(Math.random() * BASE_WORD.length);
+        let ix = (base.orientation === "across") ? base.x + indexInBase : base.x;
+        let iy = (base.orientation === "across") ? base.y : base.y + indexInBase;
+        let commonLetter = BASE_WORD[indexInBase];
+        let possibleIndices = [];
+        if (commonLetter === "H") possibleIndices.push(0, 3);
+        else if (commonLetter === "U") possibleIndices.push(1);
+        else if (commonLetter === "G") possibleIndices.push(2);
+        let newIndex = possibleIndices[Math.floor(Math.random() * possibleIndices.length)];
+        let newX = newOrientation === "across" ? ix - newIndex : ix;
+        let newY = newOrientation === "across" ? iy : iy - newIndex;
+        tryPlaceWord(newX, newY, newOrientation);
+      }
+      
+      // Attach extra attachments.
+      // For each extra attachment (e.g. "'S WEBSITE"), we ensure it gets attached.
+      // We randomly select a base word, and then try to attach the extra adjacent to it.
+      // If the target cells are not free, we force an attachment by extending the grid.
+      function attachExtra() {
+        // Create a shallow copy so that each placed word is used only once.
+        let availableWords = placedWords.slice();
+        
+        extraAttachments.forEach(att => {
+          let attached = false;
+          
+          // Try until we succeed or run out of available words.
+          while (!attached && availableWords.length > 0) {
+            // Pick a random index from availableWords.
+            let randIndex = Math.floor(Math.random() * availableWords.length);
+            let word = availableWords[randIndex];
+            // Remove this word so it cannot be used again.
+            availableWords.splice(randIndex, 1);
+            
+            if (word.orientation === "across") {
+              // In the horizontal case, try attaching after BASE_WORD.
+              let startX = word.x + BASE_WORD.length;
+              let startY = word.y;
+              let free = true;
+              // Check if cells for the extra text are free.
+              for (let j = 0; j < att.text.length; j++) {
+                let key = `${startX + j},${startY}`;
+                if (grid.has(key)) { free = false; break; }
+              }
+              if (free) {
+                for (let j = 0; j < att.text.length; j++) {
+                  let key = `${startX + j},${startY}`;
+                  grid.set(key, att.text[j]);
+                  extraPositions.set(key, att);
+                }
+                // Also update the base word’s cells with the extra’s configuration.
+                for (let j = 0; j < BASE_WORD.length; j++) {
+                  let key = `${word.x + j},${word.y}`;
+                  if (!extraPositions.has(key)) {
+                    extraPositions.set(key, att);
+                  }
+                }
+                attached = true;
+              }
+            } else {
+              // Vertical case.
+              let startX = word.x;
+              let startY = word.y + BASE_WORD.length;
+              let free = true;
+              for (let j = 0; j < att.text.length; j++) {
+                let key = `${startX},${startY + j}`;
+                if (grid.has(key)) { free = false; break; }
+              }
+              if (free) {
+                for (let j = 0; j < att.text.length; j++) {
+                  let key = `${startX},${startY + j}`;
+                  grid.set(key, att.text[j]);
+                  extraPositions.set(key, att);
+                }
+                for (let j = 0; j < BASE_WORD.length; j++) {
+                  let key = `${word.x},${word.y + j}`;
+                  if (!extraPositions.has(key)) {
+                    extraPositions.set(key, att);
+                  }
+                }
+                attached = true;
+              }
+            }
+          }
+          
+          // Fallback: If no available word allowed for a free extra attach, extend the grid.
+          if (!attached) {
+            // Here we simply choose the first placed word for fallback.
+            let word = placedWords[0];
+            if (word.orientation === "across") {
+              let bbox = computeBoundingBox(grid);
+              let startX = bbox.maxX + 1;
+              let startY = word.y;
+              for (let j = 0; j < att.text.length; j++) {
+                let key = `${startX + j},${startY}`;
+                grid.set(key, att.text[j]);
+                extraPositions.set(key, att);
+              }
+              for (let j = 0; j < BASE_WORD.length; j++) {
+                let key = `${word.x + j},${word.y}`;
+                if (!extraPositions.has(key)) {
+                  extraPositions.set(key, att);
+                }
+              }
+            } else {
+              let bbox = computeBoundingBox(grid);
+              let startX = word.x;
+              let startY = bbox.maxY + 1;
+              for (let j = 0; j < att.text.length; j++) {
+                let key = `${startX},${startY + j}`;
+                grid.set(key, att.text[j]);
+                extraPositions.set(key, att);
+              }
+              for (let j = 0; j < BASE_WORD.length; j++) {
+                let key = `${word.x},${word.y + j}`;
+                if (!extraPositions.has(key)) {
+                  extraPositions.set(key, att);
+                }
+              }
+            }
+          }
+        });
+      }
+      attachExtra();
+      
+      // Compute the minimal bounding rectangle for the grid.
+      let bbox = computeBoundingBox(grid);
+      const cols = bbox.maxX - bbox.minX + 1;
+      const rows = bbox.maxY - bbox.minY + 1;
+      
+      // Configure the grid container based on the bounding rectangle.
+      const gridContainer = document.getElementById("grid");
+      gridContainer.innerHTML = "";
+      gridContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      gridContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+      
+      // Helper: return a random directional transform for the fall animation.
+      function getRandomDirectionTransform() {
+        const directions = ["top", "left", "right", "bottom"];
+        const choice = directions[Math.floor(Math.random() * directions.length)];
+        switch(choice) {
+          case "top": return "translateY(-150vh)";
+          case "left": return "translateX(-150vw)";
+          case "right": return "translateX(150vw)";
+          case "bottom": return "translateY(150vh)";
+          default: return "translateY(-150vh)";
+        }
+      }
+      
+      // Render each grid cell.
+      grid.forEach((letter, key) => {
+        let [x, y] = key.split(",").map(Number);
+        const cell = document.createElement("div");
+        cell.className = "letter";
+        // If the cell is part of an extra attachment, apply its color and wrap in an anchor if URL is provided.
+        if (extraPositions.has(key)) {
+          let config = extraPositions.get(key);
+          cell.style.color = config.color;
+          if (config.url) {
+            let a = document.createElement("a");
+            a.href = config.url;
+            a.target = "_blank";
+            a.textContent = letter;
+            cell.appendChild(a);
+          } else {
+            cell.textContent = letter;
+          }
+        } else {
+          cell.textContent = letter;
+        }
+        const gridCol = x - bbox.minX + 1;
+        const gridRow = y - bbox.minY + 1;
+        cell.style.gridColumnStart = gridCol;
+        cell.style.gridRowStart = gridRow;
+        // Stagger the animation delay.
+        const delay = ((gridRow + gridCol) * 0.05) + (Math.random() * 0.1);
+        cell.style.animationDelay = `${delay}s`;
+        cell.style.setProperty('--start-transform', getRandomDirectionTransform());
+        gridContainer.appendChild(cell);
+      });
+    }
+    
+    window.addEventListener("DOMContentLoaded", generateCrossword);
+  </script>
+</body>
+</html>
