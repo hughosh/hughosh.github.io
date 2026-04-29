@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Hugh O'Shaughnessy — Resume. CS student at UW-Madison.">
+  <meta property="og:title" content="Hugh O'Shaughnessy — Resume">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#000000">
+  <title>Hugh O'Shaughnessy — Resume</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:       #000000;
+      --surface:  #0a0a0a;
+      --border:   #1a1a1a;
+      --text:     #e8e4dc;
+      --muted:    #666;
+      --accent:   #ff006e;
+      --accent2:  #ff69b4;
+      --dim-accent: rgba(255,0,110,0.15);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-weight: 300;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ── Nav ── */
+    header {
+      position: sticky;
+      top: 0; z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .back-link {
+      color: var(--accent2);
+      text-decoration: none;
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      opacity: 0.75;
+      transition: opacity 0.15s, color 0.15s;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .back-link:hover { opacity: 1; color: var(--accent); }
+    .back-link::before { content: '←'; }
+
+    .header-links {
+      display: flex; gap: 1.5rem;
+    }
+    .header-links a {
+      color: var(--accent2);
+      text-decoration: none;
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+      opacity: 0.6;
+      transition: opacity 0.15s, color 0.15s;
+    }
+    .header-links a:hover { opacity: 1; color: var(--accent); }
+
+    /* ── Main layout ── */
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 4rem 2rem 6rem;
+    }
+
+    /* ── Name / hero ── */
+    .name-block {
+      margin-bottom: 3rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 2rem;
+    }
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 0.4rem;
+    }
+    h1 span { color: var(--accent); }
+    .tagline {
+      font-size: 1rem;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+      margin-bottom: 1.2rem;
+    }
+    .contact-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.5rem;
+      font-size: 0.82rem;
+    }
+    .contact-row a {
+      color: var(--accent2);
+      text-decoration: none;
+      opacity: 0.8;
+      transition: opacity 0.15s, color 0.15s;
+    }
+    .contact-row a:hover { opacity: 1; color: var(--accent); }
+
+    /* ── Bio ── */
+    .bio {
+      margin-bottom: 3rem;
+      font-size: 1rem;
+      color: #b0aca4;
+      max-width: 580px;
+    }
+
+    /* ── Sections ── */
+    section { margin-bottom: 3rem; }
+    .section-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--dim-accent);
+    }
+
+    /* Experience / Education entries */
+    .entry { margin-bottom: 1.8rem; }
+    .entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      margin-bottom: 0.2rem;
+    }
+    .entry-title {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #fff;
+    }
+    .entry-meta {
+      font-size: 0.75rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .entry-org {
+      font-size: 0.82rem;
+      color: var(--accent2);
+      opacity: 0.8;
+      margin-bottom: 0.5rem;
+    }
+    .entry-body {
+      font-size: 0.88rem;
+      color: #888;
+      line-height: 1.65;
+    }
+    .entry-body ul {
+      list-style: none;
+      padding: 0;
+    }
+    .entry-body li {
+      padding-left: 1rem;
+      position: relative;
+      margin-bottom: 0.25rem;
+    }
+    .entry-body li::before {
+      content: '–';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      opacity: 0.5;
+    }
+
+    /* Projects */
+    .project { margin-bottom: 1.5rem; }
+    .project-name {
+      font-size: 0.92rem;
+      font-weight: 500;
+      color: #fff;
+      margin-bottom: 0.15rem;
+    }
+    .project-stack {
+      font-size: 0.72rem;
+      color: var(--accent2);
+      opacity: 0.65;
+      margin-bottom: 0.35rem;
+      letter-spacing: 0.04em;
+    }
+    .project-desc {
+      font-size: 0.85rem;
+      color: #777;
+      line-height: 1.6;
+    }
+
+    /* Skills */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    .skill-group-label {
+      font-size: 0.72rem;
+      color: var(--accent2);
+      opacity: 0.65;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.3rem;
+    }
+    .skill-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+    .tag {
+      font-size: 0.72rem;
+      color: #888;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0.15rem 0.5rem;
+      letter-spacing: 0.04em;
+    }
+
+    /* Resume PDF link */
+    .pdf-row {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .pdf-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--dim-accent);
+      border: 1px solid rgba(255,0,110,0.3);
+      color: var(--accent2);
+      text-decoration: none;
+      font-size: 0.82rem;
+      letter-spacing: 0.05em;
+      padding: 0.55rem 1.1rem;
+      border-radius: 4px;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .pdf-link:hover {
+      background: rgba(255,0,110,0.22);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .pdf-link::before { content: '↓'; }
+
+    @media (max-width: 520px) {
+      main { padding: 2.5rem 1.2rem 5rem; }
+      .entry-header { flex-direction: column; }
+      .entry-meta { margin-top: -0.1rem; }
+      header { padding: 0.8rem 1.2rem; }
+      .header-links { gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="back-link">home</a>
+    <nav class="header-links">
+      <a href="https://github.com/hughosh" target="_blank" rel="noopener">github</a>
+      <a href="https://www.linkedin.com/in/hugh-o-shaughnessy-a440b2231" target="_blank" rel="noopener">linkedin</a>
+      <a href="mailto:hughoshaugh@gmail.com">email</a>
+    </nav>
+  </header>
+
+  <main>
+
+    <div class="name-block">
+      <h1>Hugh <span>O'Shaughnessy</span></h1>
+      <p class="tagline">Senior · Computer Science · UW–Madison</p>
+      <div class="contact-row">
+        <a href="mailto:hughoshaugh@gmail.com">hughoshaugh@gmail.com</a>
+        <a href="https://github.com/hughosh" target="_blank" rel="noopener">github.com/hughosh</a>
+        <a href="https://www.linkedin.com/in/hugh-o-shaughnessy-a440b2231" target="_blank" rel="noopener">linkedin</a>
+        <span style="color:var(--muted)">Madison, WI</span>
+      </div>
+    </div>
+
+    <p class="bio">
+      I build things that feel good to use. Interested in systems, interfaces,
+      and the seam between the two — software that's fast, clear, and quietly
+      well-made.
+    </p>
+
+    <!-- Education -->
+    <section>
+      <div class="section-label">Education</div>
+      <div class="entry">
+        <div class="entry-header">
+          <span class="entry-title">B.S. Computer Science</span>
+          <span class="entry-meta">2022 — 2026</span>
+        </div>
+        <div class="entry-org">University of Wisconsin–Madison</div>
+        <div class="entry-body">
+          Relevant coursework: Operating Systems, Distributed Systems, Machine Learning,
+          Computer Graphics, Algorithms, Database Systems, Programming Languages.
+        </div>
+      </div>
+    </section>
+
+    <!-- Experience -->
+    <section>
+      <div class="section-label">Experience</div>
+
+      <div class="entry">
+        <div class="entry-header">
+          <span class="entry-title">Software Engineering Intern</span>
+          <span class="entry-meta">Summer 2025</span>
+        </div>
+        <div class="entry-org">To be announced</div>
+        <div class="entry-body">
+          <ul>
+            <li>Details forthcoming.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-header">
+          <span class="entry-title">Undergraduate Research Assistant</span>
+          <span class="entry-meta">2023 — 2024</span>
+        </div>
+        <div class="entry-org">UW–Madison CS Department</div>
+        <div class="entry-body">
+          <ul>
+            <li>Worked on systems research in the areas of performance and correctness.</li>
+            <li>Wrote tooling and ran experiments; contributed to internal codebases in C and Python.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-header">
+          <span class="entry-title">Teaching Assistant — CS 400</span>
+          <span class="entry-meta">Spring 2024</span>
+        </div>
+        <div class="entry-org">UW–Madison</div>
+        <div class="entry-body">
+          <ul>
+            <li>Led weekly sections and office hours for ~200 students in intro programming.</li>
+            <li>Graded projects and provided written feedback on code quality and design.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Projects -->
+    <section>
+      <div class="section-label">Projects</div>
+
+      <div class="project">
+        <div class="project-name">hughman.contact</div>
+        <div class="project-stack">JavaScript · Canvas API · Fluid Simulation</div>
+        <div class="project-desc">
+          This site. Full-screen fluid smoke simulation rendered as ASCII characters
+          (H, U, G, H) using a 2D stable-fluids solver (Jos Stam). Mouse and gyroscope
+          interaction inject velocity into the sim. Deployed to GitHub Pages.
+        </div>
+      </div>
+
+      <div class="project">
+        <div class="project-name">Systems Project</div>
+        <div class="project-stack">C · Linux</div>
+        <div class="project-desc">
+          Low-level systems work from Operating Systems coursework — memory allocator,
+          shell implementation, and multi-threaded server. Details on GitHub.
+        </div>
+      </div>
+
+      <div class="project">
+        <div class="project-name">ML Coursework</div>
+        <div class="project-stack">Python · PyTorch · NumPy</div>
+        <div class="project-desc">
+          Implemented core ML models from scratch: linear regression, neural nets,
+          convolutional networks. Completed projects in classification and generative modeling.
+        </div>
+      </div>
+    </section>
+
+    <!-- Skills -->
+    <section>
+      <div class="section-label">Skills</div>
+      <div class="skills-grid">
+        <div>
+          <div class="skill-group-label">Languages</div>
+          <div class="skill-tags">
+            <span class="tag">Python</span>
+            <span class="tag">Java</span>
+            <span class="tag">C</span>
+            <span class="tag">JavaScript</span>
+            <span class="tag">TypeScript</span>
+            <span class="tag">SQL</span>
+          </div>
+        </div>
+        <div>
+          <div class="skill-group-label">Tools &amp; Frameworks</div>
+          <div class="skill-tags">
+            <span class="tag">Linux</span>
+            <span class="tag">Git</span>
+            <span class="tag">React</span>
+            <span class="tag">Node.js</span>
+            <span class="tag">PyTorch</span>
+            <span class="tag">Docker</span>
+          </div>
+        </div>
+        <div>
+          <div class="skill-group-label">Areas</div>
+          <div class="skill-tags">
+            <span class="tag">Systems</span>
+            <span class="tag">Web</span>
+            <span class="tag">ML</span>
+            <span class="tag">Graphics</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="pdf-row">
+      <a href="hughosh_resume_2026.pdf" class="pdf-link" target="_blank" rel="noopener">
+        download resume pdf
+      </a>
+    </div>
+
+  </main>
+
+</body>
+</html>

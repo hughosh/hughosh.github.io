@@ -1,473 +1,434 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Hugh O'Shaughnessy — CS student at UW-Madison. Software engineer.">
+  <meta property="og:title" content="Hugh O'Shaughnessy">
+  <meta property="og:description" content="CS student at UW-Madison. Software engineer.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hughman.contact">
+  <meta name="theme-color" content="#000000">
   <title>Hugh O'Shaughnessy</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+    canvas { display: block; position: fixed; inset: 0; }
 
-    /* Auto light/dark */
-    :root {
-      --bg:      #f5f4f0;
-      --dim:     #aeaaa0;
-      --surface: #ffffff;
-      --border:  #e0dcd4;
-      --shadow:  rgba(0,0,0,0.12);
-      --text-tt: #1a1a1a;
-      --sub-tt:  #666;
-      --scan:    rgba(0,0,0,0.03);
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg:      #0a0a0a;
-        --dim:     #3a3a3a;
-        --surface: #161616;
-        --border:  #2a2a2a;
-        --shadow:  rgba(0,0,0,0.6);
-        --text-tt: #e8e4dc;
-        --sub-tt:  #888;
-        --scan:    rgba(0,0,0,0.08);
-      }
-    }
-
-    html, body {
-      margin: 0; padding: 0;
-      width: 100%; height: 100%;
-      background: var(--bg);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-    }
-
-    /* Scanlines */
-    body::after {
-      content: '';
-      position: fixed; inset: 0;
-      background: repeating-linear-gradient(
-        0deg, transparent, transparent 3px,
-        var(--scan) 3px, var(--scan) 4px
-      );
-      pointer-events: none;
-      z-index: 100;
-    }
-
-    #grid {
-      display: grid;
-      width: 90vw;
-      height: 90vh;
-    }
-
-    /* Letter cell */
-    .letter {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: 'Space Mono', monospace;
-      color: var(--dim);
-      opacity: 0;
-      animation: pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-      will-change: transform, opacity;
-      user-select: none;
-      position: relative;
-    }
-
-    @keyframes pop {
-      0%   { transform: scale(0) rotate(-30deg); opacity: 0; }
-      65%  { transform: scale(1.35) rotate(8deg);  opacity: 1; }
-      100% { transform: scale(1) rotate(0deg); opacity: 1; }
-    }
-
-    /* Attachment cell transitions */
-    .letter.colored {
-      transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1),
-                  filter 0.18s ease;
-    }
-
-    /* Group hover: pop out, no glow */
-    .letter.hovered {
-      transform: scale(1.28) translateY(-2px);
-      z-index: 5;
-      filter: brightness(1.15);
-    }
-
-    /* Linked cells: pointer only, no decoration */
-    .letter.linked { cursor: pointer; }
-
-    /* Full-cell anchor */
-    .letter a {
-      display: flex;
-      width: 100%; height: 100%;
-      justify-content: center;
-      align-items: center;
-      color: inherit;
-      text-decoration: none;
-    }
-
-    /* ── Tooltip ── */
-    #tt {
-      display: none;
+    nav {
       position: fixed;
-      z-index: 300;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      box-shadow: 0 10px 40px var(--shadow), 0 2px 8px var(--shadow);
-      padding: 14px 16px 12px;
-      min-width: 190px;
-      max-width: 270px;
-      pointer-events: none;
-      font-family: 'Space Mono', monospace;
-    }
-    #tt.visible { display: block; }
-
-    .tt-head {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      color: var(--text-tt);
-      margin-bottom: 4px;
-      text-transform: uppercase;
-    }
-    .tt-body {
-      font-size: 10px;
-      color: var(--sub-tt);
-      line-height: 1.5;
-    }
-
-    /* Resume preview */
-    .tt-resume {
-      margin-top: 10px;
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      overflow: hidden;
-      cursor: pointer;
-      pointer-events: all;
-    }
-    .tt-resume-page {
-      width: 100%;
-      background: #fff;
-      padding: 10px 12px 8px;
+      bottom: 0; left: 0; right: 0;
+      z-index: 10;
       display: flex;
-      flex-direction: column;
-      gap: 4px;
+      justify-content: center;
+      align-items: center;
+      gap: 2.5rem;
+      padding: 0.9rem 2rem;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(255,0,110,0.12);
     }
-    .r-name   { font-size: 9px; font-weight:700; color:#1a1a1a; letter-spacing:0.1em; }
-    .r-contact{ font-size: 6.5px; color:#888; margin-bottom:3px; }
-    .r-rule   { height:1px; background:#ddd; margin: 2px 0; }
-    .r-section{ font-size:7px; font-weight:700; color:#333; letter-spacing:0.12em; margin-top:5px; }
-    .r-line   { height:5px; border-radius:2px; background:#e8e8e8; }
-    .r-line.short{ width:50%; }
-    .r-line.mid  { width:72%; }
-    .r-line.full { width:100%; }
-    .r-line.long { width:88%; }
-    .tt-resume-hint {
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      font-size: 9px;
-      color: var(--sub-tt);
-      text-align: center;
-      padding: 5px 0 6px;
-      letter-spacing: 0.07em;
-      font-family: 'Space Mono', monospace;
-      pointer-events: all;
+    nav a {
+      color: #ff69b4;
+      text-decoration: none;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-size: 0.8rem;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      opacity: 0.75;
+      transition: opacity 0.15s, color 0.15s;
     }
+    nav a:hover { opacity: 1; color: #ff006e; }
+
+    noscript {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      color: #ff69b4;
+      font-family: system-ui, sans-serif;
+      text-align: center; gap: 1.2rem;
+      background: #000;
+    }
+    noscript h1 { font-size: 2rem; color: #ff006e; }
+    noscript p { opacity: 0.75; }
+    noscript a { color: #ff69b4; }
   </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div id="grid"></div>
+  <canvas id="c"></canvas>
 
-  <div id="tt">
-    <div class="tt-head" id="tt-head"></div>
-    <div class="tt-body" id="tt-body"></div>
-    <div class="tt-resume" id="tt-resume" style="display:none">
-      <div class="tt-resume-page">
-        <div class="r-name">HUGH O'SHAUGHNESSY</div>
-        <div class="r-contact">madison, wi · hughoshaugh@gmail.com</div>
-        <div class="r-rule"></div>
-        <div class="r-section">EDUCATION</div>
-        <div class="r-line mid"></div>
-        <div class="r-line short"></div>
-        <div class="r-section">EXPERIENCE</div>
-        <div class="r-line full"></div>
-        <div class="r-line long"></div>
-        <div class="r-line mid"></div>
-        <div class="r-line full"></div>
-        <div class="r-line short"></div>
-        <div class="r-section">PROJECTS</div>
-        <div class="r-line long"></div>
-        <div class="r-line mid"></div>
-        <div class="r-section">SKILLS</div>
-        <div class="r-line full"></div>
-        <div class="r-line short"></div>
-      </div>
-      <div class="tt-resume-hint">↗ open resume</div>
-    </div>
-  </div>
+  <nav>
+    <a href="https://www.linkedin.com/in/hugh-o-shaughnessy-a440b2231" target="_blank" rel="noopener noreferrer">linkedin</a>
+    <a href="https://github.com/hughosh" target="_blank" rel="noopener noreferrer">github</a>
+    <a href="resume.html">resume</a>
+    <a href="mailto:hughoshaugh@gmail.com">email</a>
+  </nav>
+
+  <noscript>
+    <h1>Hugh O'Shaughnessy</h1>
+    <p>Senior CS @ UW–Madison</p>
+    <p>
+      <a href="https://www.linkedin.com/in/hugh-o-shaughnessy-a440b2231">linkedin</a> ·
+      <a href="https://github.com/hughosh">github</a> ·
+      <a href="resume.html">resume</a> ·
+      <a href="mailto:hughoshaugh@gmail.com">email</a>
+    </p>
+  </noscript>
 
   <script>
-    const W = "HUGH";
+  // ── Fluid Smoke ASCII — hughman.contact ──
 
-    const ATT = [
-      { id:0, text:"'S WEBSITE",  url:null,                                                       head:"Hugh's Website",  body:"You're already here!",       color:"#c8960c", pre:false, perp:false,      resume:false },
-      { id:1, text:"'S LINKEDIN", url:"https://www.linkedin.com/in/hugh-o-shaughnessy-a440b2231", head:"LinkedIn",        body:"View my profile",            color:"#0077B5", pre:false, perp:false,      resume:false },
-      { id:2, text:"'S GITHUB",   url:"https://github.com/hughosh",                               head:"GitHub",          body:"Browse my repos",            color:"#C9510C", pre:false, perp:false,      resume:false },
-      { id:3, text:"ABOUT ",      url:"hughosh_resume_2026.pdf",                                               head:"About Hugh",      body:"Senior CS @ UW–Madison",     color:"#9966CC", pre:true,  perp:false,      resume:true  },
-      { id:4, text:"EMAIL ",      url:"mailto:hughoshaugh@gmail.com",                             head:"Email Me",        body:"hughoshaugh@gmail.com",      color:"#e05a8a", pre:true,  perp:false,      resume:false },
-      { id:5, text:"IRE ME",      url:"mailto:hughoshaugh@gmail.com",                             head:"Hire Me!",        body:"Let's work together",        color:"#39FF14", pre:false, perp:true, li:3, resume:false },
-    ];
+  const WORD = ['H','U','G','H'];
 
-    // All valid contiguous groups
-    const VALID = new Set([W]);
-    for (const a of ATT)
-      VALID.add(a.perp ? W[a.li] + a.text : a.pre ? a.text + W : W + a.text);
+  // Pink palette: index 0 = deepest/dimmest, 4 = brightest
+  const PALETTE = [
+    [150, 10, 90],    // near-invisible deep magenta
+    [199, 21, 133],   // #c71585 medium violet red
+    [255, 20, 147],   // #ff1493 deep pink
+    [255, 105, 180],  // #ff69b4 hot pink
+    [255, 0, 110],    // #ff006e vivid pink
+  ];
 
-    function bbox(g) {
-      let [x0,x1,y0,y1]=[Infinity,-Infinity,Infinity,-Infinity];
-      g.forEach((_,k)=>{
-        const[x,y]=k.split(",").map(Number);
-        x0=Math.min(x0,x);x1=Math.max(x1,x);
-        y0=Math.min(y0,y);y1=Math.max(y1,y);
-      });
-      return{x0,x1,y0,y1};
+  function densityColor(d) {
+    // clamp to [0, 1.4], map to palette + alpha
+    const norm = Math.min(d, 1.4) / 1.4;
+    if (norm < 0.04) return null;
+
+    const t = norm * (PALETTE.length - 1);
+    const lo = Math.floor(t) | 0;
+    const hi = Math.min(lo + 1, PALETTE.length - 1);
+    const f = t - lo;
+    const a = PALETTE[lo], b = PALETTE[hi];
+    const r = (a[0] + (b[0] - a[0]) * f) | 0;
+    const g = (a[1] + (b[1] - a[1]) * f) | 0;
+    const v = (a[2] + (b[2] - a[2]) * f) | 0;
+    // alpha: rapid ramp-up so smoke is opaque quickly, then stays bright
+    const alpha = Math.min(1, norm * 2.0);
+    return [r, g, v, alpha];
+  }
+
+  // ── Stable Fluids (Jos Stam 1999) ──
+  class Fluid {
+    constructor(cols, rows) {
+      this.C = cols; this.R = rows;
+      const n = cols * rows;
+      this.dens  = new Float32Array(n);
+      this.dens0 = new Float32Array(n);
+      this.vx    = new Float32Array(n);
+      this.vy    = new Float32Array(n);
+      this.vx0   = new Float32Array(n);
+      this.vy0   = new Float32Array(n);
+      this.p     = new Float32Array(n); // pressure scratch
+      this.div   = new Float32Array(n);
+      this.visc  = 0.000025;
+      this.diff  = 0.00003;
+      this.dt    = 0.016;
     }
 
-    // Validate row/col groups
-    function valid(g) {
-      const R={},C={};
-      g.forEach((l,k)=>{
-        const[x,y]=k.split(",").map(Number);
-        (R[y]||=[]).push({p:x,l});
-        (C[x]||=[]).push({p:y,l});
-      });
-      const chk=cells=>{
-        cells.sort((a,b)=>a.p-b.p);
-        let grp=[];
-        for(const c of cells){
-          if(!grp.length||c.p===grp[grp.length-1].p+1) grp.push(c);
-          else{
-            if(grp.length>1&&!VALID.has(grp.map(x=>x.l).join(""))) return false;
-            grp=[c];
+    ix(x, y) {
+      return (Math.max(0, Math.min(this.C - 1, x | 0))) +
+             (Math.max(0, Math.min(this.R - 1, y | 0))) * this.C;
+    }
+
+    addDensity(x, y, amt) { this.dens[this.ix(x, y)] += amt; }
+    addVel(x, y, ax, ay)  { const i = this.ix(x, y); this.vx[i] += ax; this.vy[i] += ay; }
+
+    setBound(b, arr) {
+      const { C, R } = this;
+      for (let i = 1; i < C - 1; i++) {
+        arr[i + 0 * C]       = b === 2 ? -arr[i + 1 * C]       : arr[i + 1 * C];
+        arr[i + (R-1) * C]   = b === 2 ? -arr[i + (R-2) * C]   : arr[i + (R-2) * C];
+      }
+      for (let j = 1; j < R - 1; j++) {
+        arr[0 + j * C]       = b === 1 ? -arr[1 + j * C]       : arr[1 + j * C];
+        arr[(C-1) + j * C]   = b === 1 ? -arr[(C-2) + j * C]   : arr[(C-2) + j * C];
+      }
+      arr[0 + 0 * C]         = 0.5 * (arr[1 + 0*C] + arr[0 + 1*C]);
+      arr[(C-1) + 0*C]       = 0.5 * (arr[(C-2) + 0*C] + arr[(C-1) + 1*C]);
+      arr[0 + (R-1)*C]       = 0.5 * (arr[1 + (R-1)*C] + arr[0 + (R-2)*C]);
+      arr[(C-1) + (R-1)*C]   = 0.5 * (arr[(C-2) + (R-1)*C] + arr[(C-1) + (R-2)*C]);
+    }
+
+    diffuse(b, x, x0, coef, iter) {
+      const { C, R, dt } = this;
+      const a = dt * coef * (C - 2) * (R - 2);
+      const inv = 1 / (1 + 4 * a);
+      for (let k = 0; k < iter; k++) {
+        for (let j = 1; j < R - 1; j++) {
+          for (let i = 1; i < C - 1; i++) {
+            x[i + j*C] = (x0[i + j*C] + a*(
+              x[(i-1)+j*C] + x[(i+1)+j*C] + x[i+(j-1)*C] + x[i+(j+1)*C]
+            )) * inv;
           }
         }
-        return grp.length<=1||VALID.has(grp.map(x=>x.l).join(""));
-      };
-      return[...Object.values(R),...Object.values(C)].every(chk);
-    }
-
-    // Place word; returns true on success
-    function place(x,y,o,g,ws){
-      if(ws.some(w=>w.x===x&&w.y===y&&w.o===o)) return false;
-      const c=new Map(g);
-      for(let i=0;i<W.length;i++){
-        const k=o==="h"?`${x+i},${y}`:`${x},${y+i}`;
-        if(c.has(k)&&c.get(k)!==W[i]) return false;
-        c.set(k,W[i]);
+        this.setBound(b, x);
       }
-      if(!valid(c)) return false;
-      c.forEach((v,k)=>g.set(k,v));
-      ws.push({x,y,o}); return true;
     }
 
-    // Perpendicular candidates from placed word
-    function cands(w){
-      const no=w.o==="h"?"v":"h",seen=new Set(),res=[];
-      for(let i=0;i<W.length;i++)
-        for(let j=0;j<W.length;j++){
-          if(W[i]!==W[j]) continue;
-          const ix=w.o==="h"?w.x+i:w.x, iy=w.o==="h"?w.y:w.y+i;
-          const nx=no==="h"?ix-j:ix, ny=no==="h"?iy:iy-j;
-          const key=`${nx},${ny},${no}`;
-          if(!seen.has(key)){seen.add(key);res.push({x:nx,y:ny,o:no});}
-        }
-      return res;
-    }
-
-    // BFS from start cell
-    function bfs(g,s){
-      const d=new Map([[s,0]]),q=[s];
-      while(q.length){
-        const[cx,cy]=q.shift().split(",").map(Number);
-        const dist=d.get(`${cx},${cy}`);
-        for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){
-          const nk=`${cx+dx},${cy+dy}`;
-          if(g.has(nk)&&!d.has(nk)){d.set(nk,dist+1);q.push(nk);}
+    advect(b, d, d0, u, v) {
+      const { C, R, dt } = this;
+      const dtx = dt * (C - 2), dty = dt * (R - 2);
+      for (let j = 1; j < R - 1; j++) {
+        for (let i = 1; i < C - 1; i++) {
+          const idx = i + j * C;
+          let x = i - dtx * u[idx];
+          let y = j - dty * v[idx];
+          x = Math.max(0.5, Math.min(C - 1.5, x));
+          y = Math.max(0.5, Math.min(R - 1.5, y));
+          const i0 = x | 0, i1 = i0 + 1;
+          const j0 = y | 0, j1 = j0 + 1;
+          const s1 = x - i0, s0 = 1 - s1;
+          const t1 = y - j0, t0 = 1 - t1;
+          d[idx] = s0*(t0*d0[i0+j0*C] + t1*d0[i0+j1*C]) +
+                   s1*(t0*d0[i1+j0*C] + t1*d0[i1+j1*C]);
         }
       }
-      return d;
+      this.setBound(b, d);
     }
 
-    function shuffle(a){
-      for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
-      return a;
-    }
-
-    function gen(){
-      for(let attempt=0;attempt<30;attempt++){
-        const g=new Map(),ws=[],q=[];
-        place(0,0,"h",g,ws);
-        q.push(...cands(ws[0]));
-        const tried=new Set(["0,0,h"]);
-
-        // Grow crossword BFS
-        while(q.length&&ws.length<15){
-          const i=Math.floor(Math.random()*q.length);
-          const[c]=q.splice(i,1);
-          const key=`${c.x},${c.y},${c.o}`;
-          if(tried.has(key)) continue;
-          tried.add(key);
-          if(place(c.x,c.y,c.o,g,ws)) q.push(...cands(ws[ws.length-1]));
+    project(u, v, p, div, iter) {
+      const { C, R } = this;
+      const hx = 1.0 / C, hy = 1.0 / R;
+      for (let j = 1; j < R - 1; j++) {
+        for (let i = 1; i < C - 1; i++) {
+          div[i+j*C] = -0.5*(hx*(u[(i+1)+j*C]-u[(i-1)+j*C]) + hy*(v[i+(j+1)*C]-v[i+(j-1)*C]));
+          p[i+j*C] = 0;
         }
+      }
+      this.setBound(0, div); this.setBound(0, p);
+      for (let k = 0; k < iter; k++) {
+        for (let j = 1; j < R - 1; j++) {
+          for (let i = 1; i < C - 1; i++) {
+            p[i+j*C] = (div[i+j*C] + p[(i-1)+j*C] + p[(i+1)+j*C] + p[i+(j-1)*C] + p[i+(j+1)*C]) / 4;
+          }
+        }
+        this.setBound(0, p);
+      }
+      for (let j = 1; j < R - 1; j++) {
+        for (let i = 1; i < C - 1; i++) {
+          u[i+j*C] -= 0.5*(p[(i+1)+j*C]-p[(i-1)+j*C])/hx;
+          v[i+j*C] -= 0.5*(p[i+(j+1)*C]-p[i+(j-1)*C])/hy;
+        }
+      }
+      this.setBound(1, u); this.setBound(2, v);
+    }
 
-        if(ws.length<ATT.length) continue;
+    step(iters) {
+      const { vx, vy, vx0, vy0, dens, dens0, visc, diff, p, div } = this;
+      // velocity step
+      this.diffuse(1, vx0, vx, visc, iters);
+      this.diffuse(2, vy0, vy, visc, iters);
+      this.project(vx0, vy0, p, div, iters);
+      this.advect(1, vx, vx0, vx0, vy0);
+      this.advect(2, vy, vy0, vx0, vy0);
+      this.project(vx, vy, p, div, iters);
+      // density step
+      this.diffuse(0, dens0, dens, diff, iters);
+      this.advect(0, dens, dens0, vx, vy);
+      // decay
+      for (let i = 0; i < dens.length; i++) dens[i] *= 0.993;
+    }
+  }
 
-        // Attach all extras
-        const ep=new Map();
-        const avail=shuffle(ws.slice());
-        let allOk=true;
+  // ── Setup ──
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
 
-        for(const att of ATT){
-          let placed=false;
-          for(const w of avail.slice()){
-            let cells=[],base=[];
-            if(att.perp){
-              if(w.o!=="v") continue;
-              const hx=w.x,hy=w.y+att.li;
-              for(let j=0;j<att.text.length;j++) cells.push({k:`${hx+1+j},${hy}`,l:att.text[j]});
-              base=[`${hx},${hy}`];
-            } else if(w.o==="h"){
-              const sx=att.pre?w.x-att.text.length:w.x+W.length;
-              for(let j=0;j<att.text.length;j++) cells.push({k:`${sx+j},${w.y}`,l:att.text[j]});
-              for(let j=0;j<W.length;j++) base.push(`${w.x+j},${w.y}`);
-            } else {
-              const sy=att.pre?w.y-att.text.length:w.y+W.length;
-              for(let j=0;j<att.text.length;j++) cells.push({k:`${w.x},${sy+j}`,l:att.text[j]});
-              for(let j=0;j<W.length;j++) base.push(`${w.x},${w.y+j}`);
+  let fluid, cols, rows, cellW, cellH, fontSz, charW, W, H;
+  let solverIters = 4;
+  let simTime = 0;
+
+  const FONT = "Georgia, 'Times New Roman', serif";
+
+  function initSim() {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width  = W;
+    canvas.height = H;
+
+    // Target ~90 cols; scale font so chars pack screen nicely
+    const targetCols = Math.round(W / 11);
+    fontSz = Math.max(10, Math.min(22, Math.floor(W / targetCols)));
+
+    ctx.font = `${fontSz}px ${FONT}`;
+    // Measure each HUGH char; use average for uniform grid
+    const ws = WORD.map(ch => ctx.measureText(ch).width);
+    charW = ws; // store per-char widths for centered drawing
+    const avgW = ws.reduce((a, b) => a + b, 0) / ws.length;
+
+    const lineH = fontSz * 1.38;
+    cols = Math.max(4, Math.ceil(W / avgW));
+    rows = Math.max(4, Math.ceil(H / lineH));
+    cellW = W / cols;
+    cellH = H / rows;
+
+    fluid = new Fluid(cols, rows);
+
+    // Seed initial smoke
+    for (let k = 0; k < 12; k++) {
+      const cx = 1 + Math.random() * (cols - 2);
+      const cy = rows * 0.5 + Math.random() * rows * 0.4;
+      for (let di = -3; di <= 3; di++) {
+        for (let dj = -3; dj <= 3; dj++) {
+          const r = Math.sqrt(di*di + dj*dj);
+          if (r < 3.5) fluid.addDensity(cx + di, cy + dj, (1 - r/3.5) * 0.7);
+        }
+      }
+      fluid.addVel(cx, cy, (Math.random()-0.5)*0.5, -0.8 - Math.random()*0.5);
+    }
+  }
+
+  // ── Ambient sources ──
+  function addAmbient(t) {
+    const numSrc = Math.max(3, cols / 18 | 0);
+    for (let k = 0; k < numSrc; k++) {
+      const phase = t * 0.6 + k * 2.1;
+      const sx = Math.max(1, Math.min(cols-2, ((k + 0.5) / numSrc * cols + Math.sin(phase) * 4) | 0));
+      const sy = rows - 2;
+      fluid.addDensity(sx, sy, 1.1);
+      fluid.addDensity(sx, sy - 1, 0.5);
+      fluid.addVel(sx, sy, Math.sin(phase * 0.8) * 0.4, -2.0 - Math.sin(phase * 0.3) * 0.5);
+    }
+    // Occasional mid-field turbulence
+    if (Math.random() < 0.25) {
+      const rx = 1 + (Math.random() * (cols-2)) | 0;
+      const ry = 1 + (Math.random() * (rows-2)) | 0;
+      fluid.addVel(rx, ry, (Math.random()-0.5)*0.6, (Math.random()-0.5)*0.6);
+    }
+  }
+
+  // ── Interaction ──
+  let lx = -1, ly = -1;
+
+  window.addEventListener('mousemove', e => {
+    if (!fluid) return;
+    const nx = e.clientX / cellW;
+    const ny = e.clientY / cellH;
+    if (lx >= 0) {
+      const dvx = (nx - lx) * 3, dvy = (ny - ly) * 3;
+      const speed = Math.sqrt(dvx*dvx + dvy*dvy);
+      if (speed > 0.05) {
+        const gx = nx | 0, gy = ny | 0;
+        const rad = Math.min(3, Math.ceil(speed));
+        for (let di = -rad; di <= rad; di++) {
+          for (let dj = -rad; dj <= rad; dj++) {
+            const r = Math.sqrt(di*di+dj*dj);
+            if (r <= rad) {
+              const w = 1 - r/rad;
+              fluid.addVel(gx+di, gy+dj, dvx*w, dvy*w);
+              fluid.addDensity(gx+di, gy+dj, 0.4 * w * Math.min(speed/2, 1));
             }
-            if(cells.some(c=>g.has(c.k))) continue;
-            const cand=new Map(g);
-            for(const c of cells) cand.set(c.k,c.l);
-            if(!valid(cand)) continue;
-            for(const c of cells){g.set(c.k,c.l);ep.set(c.k,att);}
-            for(const k of base) if(!ep.has(k)) ep.set(k,att);
-            avail.splice(avail.indexOf(w),1);
-            placed=true; break;
           }
-          if(!placed){allOk=false;break;}
         }
-
-        if(!allOk) continue;
-        render(g,ep); return;
       }
-      console.error("Generation failed after 30 attempts");
     }
+    lx = nx; ly = ny;
+  });
 
-    // ── Tooltip ──
-    const ttEl   =document.getElementById("tt");
-    const ttHead =document.getElementById("tt-head");
-    const ttBody =document.getElementById("tt-body");
-    const ttRes  =document.getElementById("tt-resume");
-    let hideTimer=null;
-
-    // Anchor tooltip to entire group bbox — no jitter between letters
-    function showTT(att,groupEls){
-      clearTimeout(hideTimer);
-      ttHead.textContent=att.head;
-      ttBody.textContent=att.body;
-      ttRes.style.display=att.resume?"block":"none";
-      if(att.resume){
-        ttRes.onclick=()=>window.open("hughosh_resume_2026.pdf","_blank");
-        ttRes.style.cursor="pointer";
-      }
-      ttEl.classList.add("visible");
-      const rs=groupEls.map(e=>e.getBoundingClientRect());
-      const gL=Math.min(...rs.map(r=>r.left)), gR=Math.max(...rs.map(r=>r.right));
-      const gT=Math.min(...rs.map(r=>r.top)),  gB=Math.max(...rs.map(r=>r.bottom));
-      const tw=Math.max(ttEl.offsetWidth,190), th=ttEl.offsetHeight;
-      let left=(gL+gR)/2-tw/2;
-      let top=gT-th-12;
-      if(top<8) top=gB+12;
-      ttEl.style.left=Math.max(8,Math.min(left,window.innerWidth-tw-8))+"px";
-      ttEl.style.top=top+"px";
-    }
-
-    function hideTT(){
-      hideTimer=setTimeout(()=>ttEl.classList.remove("visible"),130);
-    }
-
-    ttEl.addEventListener("mouseenter",()=>clearTimeout(hideTimer));
-    ttEl.addEventListener("mouseleave",hideTT);
-
-    function render(g,ep){
-      const{x0,x1,y0,y1}=bbox(g);
-      const numCols=x1-x0+1,numRows=y1-y0+1;
-      const cont=document.getElementById("grid");
-      cont.style.gridTemplateColumns=`repeat(${numCols},1fr)`;
-      cont.style.gridTemplateRows=`repeat(${numRows},1fr)`;
-      cont.innerHTML="";
-
-      // Proportional font size
-      const cellW=(window.innerWidth*0.9)/numCols;
-      const cellH=(window.innerHeight*0.9)/numRows;
-      const fs=Math.max(8,Math.min(26,Math.floor(Math.min(cellW,cellH)*0.52)));
-      cont.style.fontSize=fs+"px";
-
-      // BFS spiral delays from origin H
-      const dist=bfs(g,"0,0");
-      const maxD=dist.size>1?Math.max(...dist.values()):0;
-
-      const groups=Object.fromEntries(ATT.map(a=>[a.id,[]]));
-
-      g.forEach((letter,key)=>{
-        const[x,y]=key.split(",").map(Number);
-        const el=document.createElement("div");
-        el.className="letter";
-        el.style.gridColumnStart=x-x0+1;
-        el.style.gridRowStart=y-y0+1;
-
-        const d=dist.has(key)?dist.get(key):maxD;
-        el.style.animationDelay=`${d*0.065+Math.random()*0.025}s`;
-
-        if(ep.has(key)){
-          const att=ep.get(key);
-          el.classList.add("colored");
-          el.style.color=att.color;
-          groups[att.id].push(el);
-
-          if(att.url){
-            el.classList.add("linked");
-            const a=document.createElement("a");
-            a.href=att.url;
-            a.target="_blank";
-            a.rel="noopener noreferrer";
-            a.textContent=letter;
-            el.appendChild(a);
-          } else {
-            el.textContent=letter;
+  let lastTouch = null;
+  window.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (!fluid) return;
+    const t = e.touches[0];
+    const nx = t.clientX / cellW, ny = t.clientY / cellH;
+    if (lastTouch) {
+      const dvx = (nx - lastTouch.x) * 4, dvy = (ny - lastTouch.y) * 4;
+      const gx = nx | 0, gy = ny | 0;
+      for (let di = -2; di <= 2; di++)
+        for (let dj = -2; dj <= 2; dj++) {
+          const w = 1 - Math.sqrt(di*di+dj*dj)/3;
+          if (w > 0) {
+            fluid.addVel(gx+di, gy+dj, dvx*w, dvy*w);
+            fluid.addDensity(gx+di, gy+dj, 0.6*w);
           }
-
-          el.addEventListener("mouseenter",()=>showTT(att,groups[att.id]));
-          el.addEventListener("mouseleave",hideTT);
-        } else {
-          el.textContent=letter;
         }
+    }
+    lastTouch = { x: nx, y: ny };
+  }, { passive: false });
+  window.addEventListener('touchend', () => { lastTouch = null; });
 
-        cont.appendChild(el);
-      });
+  // DeviceOrientation (gyroscope tilt on mobile)
+  window.addEventListener('deviceorientation', e => {
+    if (!fluid || e.gamma == null) return;
+    const ax = (e.gamma / 45) * 0.4; // left/right tilt
+    const ay = ((e.beta - 45) / 45) * 0.4; // forward/back tilt
+    const step = Math.max(3, cols / 20 | 0);
+    for (let j = 1; j < rows-1; j += step) {
+      for (let i = 1; i < cols-1; i += step) {
+        fluid.addVel(i, j, ax + (Math.random()-0.5)*0.05, ay + (Math.random()-0.5)*0.05);
+      }
+    }
+  });
 
-      // Sync pop-out per group
-      for(const els of Object.values(groups)){
-        if(!els.length) continue;
-        for(const el of els){
-          el.addEventListener("mouseenter",()=>els.forEach(e=>e.classList.add("hovered")));
-          el.addEventListener("mouseleave",()=>els.forEach(e=>e.classList.remove("hovered")));
-        }
+  // ── Render ──
+  // Pre-build gradient stops for fast per-cell coloring via ImageData
+  // We'll use ctx.fillStyle + fillText per character (fast enough for our grid sizes)
+
+  let frameCount = 0;
+  let fpsStartTime = performance.now();
+  let avgFps = 60;
+
+  function frame(ts) {
+    requestAnimationFrame(frame);
+    frameCount++;
+
+    // FPS monitoring — drop solver quality if struggling
+    if (frameCount % 90 === 0) {
+      const elapsed = ts - fpsStartTime;
+      avgFps = 90 / (elapsed / 1000);
+      fpsStartTime = ts;
+      if (avgFps < 30 && solverIters > 2) {
+        solverIters--;
+      } else if (avgFps > 50 && solverIters < 6) {
+        solverIters++;
       }
     }
 
-    window.addEventListener("DOMContentLoaded",gen);
+    simTime += 0.016;
+    addAmbient(simTime);
+    fluid.step(solverIters);
+
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.font = `${fontSz}px ${FONT}`;
+    ctx.textBaseline = 'middle';
+
+    const { dens, C, R } = fluid;
+
+    for (let j = 0; j < R; j++) {
+      for (let i = 0; i < C; i++) {
+        const d = dens[i + j * C];
+        if (d < 0.04) continue;
+
+        const col = densityColor(d);
+        if (!col) continue;
+
+        // HUGH tiles left-to-right: column index mod 4
+        const ci = i % 4;
+        const ch = WORD[ci];
+
+        // Center char in its cell using its measured width
+        const cx = i * cellW + (cellW - charW[ci]) * 0.5;
+        const cy = j * cellH + cellH * 0.5;
+
+        ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${col[3].toFixed(3)})`;
+        ctx.fillText(ch, cx, cy);
+      }
+    }
+  }
+
+  initSim();
+  requestAnimationFrame(frame);
+
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(initSim, 120);
+  });
   </script>
 </body>
 </html>
